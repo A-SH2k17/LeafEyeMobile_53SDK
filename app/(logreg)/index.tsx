@@ -64,6 +64,12 @@ const iconBell = `
 </svg>
 `;
 
+const iconFert = `
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Leaf shape with stem -->
+  <path d="M20,4 C15,1 6,1 4,10 C2,19 10,22 18,16 C18,16 20,5 12,10 M4,10 C4,10 8,12 12,10 M12,10 C12,10 16,8 18,16 M12,10 L12,21"/>
+</svg>
+`
 const LeafEyeMainMenu = () => {
   const [notificationCount, setNotificationCount] = useState(3);
   const insets = useSafeAreaInsets();
@@ -76,22 +82,16 @@ const LeafEyeMainMenu = () => {
       description: 'Track and manage your plant collection'
     },
     {
-      title: 'Diagnose',
-      icon: iconCamera,
+      title: 'Feritilzer',
+      icon: iconFert,
       iconColor: '#3D7054',
       description: 'Scan and detect plant diseases'
     },
     {
-      title: 'Plant Doctor',
+      title: 'LeafEye Chatbot',
       icon: iconMessage,
       iconColor: '#3D7054',
       description: 'Chat with our AI plant expert'
-    },
-    {
-      title: 'Plant Library',
-      icon: iconBook,
-      iconColor: '#3D7054',
-      description: 'Browse plant care guides'
     }
   ];
 
@@ -102,7 +102,7 @@ const LeafEyeMainMenu = () => {
   ];
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor="#3D7054" />
       
       {/* Header */}
@@ -126,14 +126,6 @@ const LeafEyeMainMenu = () => {
             <Text style={styles.greeting}>Good afternoon, Gardener!</Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.notificationButton}>
-              <SvgXml xml={iconBell} width={28} height={28} color="#FFFFFF" />
-              {notificationCount > 0 && (
-                <View style={styles.notificationBadge}>
-                  <Text style={styles.notificationText}>{notificationCount}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
             <TouchableOpacity style={styles.profileButton}>
               <SvgXml xml={iconUser} width={26} height={26} color="#FFFFFF" />
             </TouchableOpacity>
@@ -209,8 +201,8 @@ const LeafEyeMainMenu = () => {
         <View style={styles.tabItemCenter} />
         
         <TouchableOpacity style={styles.tabItem}>
-          <SvgXml xml={iconBook} width={24} height={24} color="#3D7054" />
-          <Text style={styles.tabText}>Library</Text>
+          <SvgXml xml={iconFert} width={24} height={24} color="#3D7054" />
+          <Text style={styles.tabText}>Fertilizer</Text>
         </TouchableOpacity>
         
         <TouchableOpacity style={styles.tabItem}>
@@ -224,7 +216,7 @@ const LeafEyeMainMenu = () => {
         <SvgXml xml={iconCamera} width={28} height={28} color="#FFFFFF" />
       </TouchableOpacity>
       <Text style={styles.identifyText}>Diagnose</Text>
-    </View>
+    </SafeAreaView>
   );
 };
 
