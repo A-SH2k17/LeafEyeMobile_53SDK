@@ -17,6 +17,7 @@ import { SvgXml } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import BottomNav from '@/components/nonprimitive/BottomNav';
+import { router } from 'expo-router';
 
 // SVG icons as XML strings - simplified set
 const iconBack = `
@@ -261,7 +262,7 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
       <View style={styles.header}>
         <TouchableOpacity 
           style={styles.backButton}
-          onPress={() => navigation?.goBack()}
+          onPress={() => router.back()}
         >
           <SvgXml xml={iconBack} width={24} height={24} color="#FFFFFF" />
         </TouchableOpacity>

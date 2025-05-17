@@ -226,5 +226,105 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#3D7054',
-  }
+  },
+
+
+  //login
+  scrollContainer: {
+    flexGrow: 1,
+  },
+  screenContainer: {
+    flex: 1,
+    padding: 16,
+    paddingTop: 24,
+  },
+  logoSignContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  screenTitle: {
+    textAlign: 'center',
+    color: '#047857',
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  screenSubtitle: {
+    textAlign: 'center',
+    color: '#047857',
+    fontSize: 14,
+    marginBottom: 24,
+  },
+  formContainer: {
+    marginBottom: 16,
+  },
+  inputGroup: {
+    marginBottom: 12,
+  },
+  inputLabel: {
+    color: '#047857',
+    marginBottom: 4,
+    fontSize: 14,
+  },
+  textInput: {
+    width: '100%',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 4,
+    fontSize: 14,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  picker: {
+    width: '100%',
+    height: 40,
+  },
+  primaryButton: {
+    backgroundColor: '#047857',
+    paddingVertical: 12,
+    borderRadius: 6,
+    marginBottom: 16,
+  },
+  primaryButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  secondaryButton: {
+    backgroundColor: '#a7f3d0',
+    paddingVertical: 12,
+    borderRadius: 6,
+    marginBottom: 16,
+  },
+  secondaryButtonText: {
+    color: '#047857',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  buttonContainer: {
+    marginBottom: 16,
+  },
+  buttonSpacing: {
+    marginTop: 12,
+  },
+  forgotPasswordContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  footerContainer: {
+    marginTop: 'auto',
+    alignItems: 'center',
+  },
+  footerText: {
+    fontSize: 14,
+  },
+  linkText: {
+    color: '#047857',
+    fontWeight: '500',
+  },
 });
