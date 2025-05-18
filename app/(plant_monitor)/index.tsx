@@ -1,6 +1,7 @@
 import BottomNav from '@/components/nonprimitive/BottomNav';
+import axios from 'axios';
 import { router } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Image,
     Platform,
@@ -13,6 +14,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
+// Define the Plant interface to match the API response
+interface Plant {
+  monitor_id: string;
+  plantType: string;
+  datePlanted: string;
+  image: string;
+}
+
 // Back arrow icon
 const backArrowIcon = `
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -20,44 +29,36 @@ const backArrowIcon = `
 </svg>
 `;
 
-// Mock data - replace with actual data from your backend
-const plants = [
-  {
-    id: '1',
-    image: 'https://images.unsplash.com/photo-1463154545680-d59320fd685d',
-    type: 'Monstera Deliciosa',
-    datePlanted: '2024-03-15'
-  },
-  {
-    id: '2',
-    image: 'https://images.unsplash.com/photo-1525498128493-380d1990a112',
-    type: 'Snake Plant',
-    datePlanted: '2024-03-10'
-  },
-  {
-    id: '3',
-    image: 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09',
-    type: 'Peace Lily',
-    datePlanted: '2024-03-05'
-  }
-];
-
 export default function PlantMonitor() {
-  
+  // Initialize state with proper typing
+  const [plants, setPlants] = useState<Plant[]>([]);
 
-  const handlePlantPress = (plant: typeof plants[0]) => {
+  const handlePlantPress = (plant: Plant) => {
     router.push({
       pathname: '/(plant_monitor)/monitor',
       params: {
-        plantType: plant.type,
+        plantType: plant.plantType,
         datePlanted: plant.datePlanted,
         image: plant.image,
-        id: plant.id
+        id: plant.monitor_id
       }
     });
   };
 
-  
+  useEffect(() => {
+    getPlants();
+  }, []);
+
+  const getPlants = async () => {
+    try {
+      const response = await axios.get<{ message: Plant[] }>('http://leafeye.test/api/plants_monitor');
+      console.log(response.data.message);
+      setPlants(response.data.message);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
@@ -81,7 +82,7 @@ export default function PlantMonitor() {
       >
         {plants.map((plant) => (
           <TouchableOpacity 
-            key={plant.id} 
+            key={plant.monitor_id} 
             style={styles.plantCard}
             onPress={() => handlePlantPress(plant)}
           >
@@ -91,7 +92,7 @@ export default function PlantMonitor() {
               resizeMode="cover"
             />
             <View style={styles.plantInfo}>
-              <Text style={styles.plantType}>{plant.type}</Text>
+              <Text style={styles.plantType}>{plant.plantType}</Text>
               <Text style={styles.plantDate}>Planted on {plant.datePlanted}</Text>
             </View>
           </TouchableOpacity>

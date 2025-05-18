@@ -1,8 +1,9 @@
 import BottomNav from '@/components/nonprimitive/BottomNav';
 import { styles as baseStyles } from '@/stylesheet/styles';
+import axios from 'axios';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -13,14 +14,45 @@ const backArrowIcon = `
 </svg>
 `;
 
+interface Plant{
+  image:string,
+  datePlanted:string,
+  id:number,
+}
+
 const PlantDetailsScreen = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { plantType, datePlanted, image } = params;
+  const { plantType, datePlanted, image, id } = params;
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [images, setImages] = useState<Plant[]>([]);
 
-  const handleBack = () => {
-    router.back();
+  useEffect(() => {
+    getPlants();
+  }, []);
+
+  const getPlants = async () => {
+    try {
+      const response = await axios.post('http://leafeye.test/api/monitor_images', {
+        monitor_id: id,
+      });
+      console.log(response.data.message);
+      setImages(response.data.message);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleImagePress = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedImage(null);
   };
 
   return (
@@ -30,7 +62,7 @@ const PlantDetailsScreen = () => {
         <View style={styles.headerContent}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={handleBack}
+            onPress={() => router.back()}
           >
             <SvgXml xml={backArrowIcon} width={24} height={24} color="#FFFFFF" />
           </TouchableOpacity>
@@ -39,10 +71,7 @@ const PlantDetailsScreen = () => {
         </View>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <TouchableOpacity onPress={() => handleImagePress(image as string)}>
         <View style={styles.imageContainer}>
           <Image
             source={{ uri: image as string }}
@@ -50,18 +79,63 @@ const PlantDetailsScreen = () => {
             resizeMode="cover"
           />
         </View>
+      </TouchableOpacity>
 
-        <View style={styles.infoContainer}>
-          <Text style={styles.plantName}>{plantType}</Text>
-          <Text style={styles.plantDate}>Planted on: {datePlanted}</Text>
-          
-          {/* Add more plant details here as needed */}
-          <View style={styles.detailsSection}>
-            <Text style={styles.sectionTitle}>Plant Details</Text>
-            {/* Add more plant information here */}
-          </View>
+      <View style={styles.infoContainer}>
+        <Text style={styles.plantName}>{plantType}</Text>
+        <Text style={styles.plantDate}>Planted on: {datePlanted}</Text>
+        
+        {/* Add more plant details here as needed */}
+        <View style={styles.detailsSection}>
+          <Text style={styles.sectionTitle}>Monitor Details</Text>
+          {/* Add more plant information here */}
         </View>
+      </View>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {images.map((plant) => (
+          <View 
+            key={plant.id} 
+            style={styles.monitorCard}
+          >
+            <TouchableOpacity onPress={() => handleImagePress(plant.image)}>
+              <Image 
+                source={{ uri: plant.image }} 
+                style={styles.monitorImage}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+            <View style={styles.monitorInfo}>
+              <Text style={styles.monitorDate}>Planted on {plant.datePlanted}</Text>
+            </View>
+          </View>
+        ))}
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={closeModal}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={closeModal}
+        >
+          <View style={styles.modalContent}>
+            {selectedImage && (
+              <Image
+                source={{ uri: selectedImage }}
+                style={styles.expandedImage}
+                resizeMode="contain"
+              />
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
       <BottomNav />
     </View>
@@ -102,11 +176,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 100, // Extra padding for bottom nav
+    paddingBottom: 100,
   },
   imageContainer: {
     width: '100%',
-    height: 300,
+    height: 150,
     backgroundColor: '#F5F5F5',
   },
   plantImage: {
@@ -138,6 +212,43 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1F2937',
     marginBottom: 12,
+  },
+  monitorCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    marginBottom: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  monitorImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  monitorInfo: {
+    padding: 8,
+  },
+  monitorDate: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  expandedImage: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height * 0.8,
   },
 });
 

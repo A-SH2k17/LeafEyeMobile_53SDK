@@ -72,7 +72,7 @@ interface Plant {
   datePlanted: string;
   plantType: string;
   image: string;
-  id?: number; // Adding optional id for navigation
+  monitor_id: number; // Adding optional id for navigation
 }
 // Define the styles before the component
 const styles = {
@@ -221,13 +221,12 @@ const LeafEyeMainMenu = () => {
   const handlePlantPress = (plant: Plant) => {
     // Navigate to plant details screen with the plant data
     router.push({
-      pathname: '/(plant_monitor)',
+      pathname: '/(plant_monitor)/monitor',
       params: { 
-        screen: 'plant',
         plantType: plant.plantType,
         datePlanted: plant.datePlanted,
         image: plant.image,
-        id: plant.id
+        id: plant.monitor_id
       }
     });
   };
