@@ -1,8 +1,8 @@
-import { View,TouchableOpacity,Text } from "react-native"
+import { Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from 'react-native-svg';
-import {styles} from '../../stylesheet/styles'
-import { router, Router } from "expo-router";
-
+import { router } from "expo-router";
+import { styles } from '../../stylesheet/styles';
+import React from "react";
 const iconLeaf = `
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M11 20A7 7 0 0 1 4 13C4 9.25 7 6 11 7h1a8 8 0 0 0 8 8c0 4.75-3.25 7.75-7 7.75h-2z"/>
@@ -60,7 +60,7 @@ export default function BottomNav(){
           <Text style={styles.tabText}>Fertilizer</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={styles.tabItem} onPress={()=>router.push('/profile')}>
           <SvgXml xml={iconUser} width={24} height={24} color="#3D7054" />
           <Text style={styles.tabText}>Profile</Text>
         </TouchableOpacity>

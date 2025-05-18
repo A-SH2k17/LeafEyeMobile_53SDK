@@ -1,23 +1,22 @@
 // SimplifiedFertilizerRecommendation.jsx
+import BottomNav from '@/components/nonprimitive/BottomNav';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { router } from 'expo-router';
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  ScrollView, 
-  SafeAreaView, 
+import {
+  Modal,
+  Platform,
+  SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
-  Platform,
+  Text,
   TextInput,
-  Alert,
-  Modal
+  TouchableOpacity,
+  View
 } from 'react-native';
-import { SvgXml } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StackNavigationProp } from '@react-navigation/stack';
-import BottomNav from '@/components/nonprimitive/BottomNav';
-import { router } from 'expo-router';
+import { SvgXml } from 'react-native-svg';
 
 // SVG icons as XML strings - simplified set
 const iconBack = `
@@ -110,112 +109,127 @@ interface FertilizerRecommendationProps {
 
 const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps) => {
   const insets = useSafeAreaInsets();
-  const [soilType, setSoilType] = useState('');
-  const [temperature, setTemperature] = useState('');
-  const [humidity, setHumidity] = useState('');
-  const [cropType, setCropType] = useState('');
+  const [formData, setFormData] = useState({
+    soil_color: '',
+    nitrogen: '',
+    phosphorus: '',
+    potassium: '',
+    ph: '',
+    rainfall: '',
+    temperature: '',
+    crop: ''
+  });
   const [showResults, setShowResults] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   
   // Modal state for improved dropdowns
-  const [soilModalVisible, setSoilModalVisible] = useState(false);
+  const [soilColorModalVisible, setSoilColorModalVisible] = useState(false);
   const [cropModalVisible, setCropModalVisible] = useState(false);
 
-  // Sample soil types
-  const soilTypes = [
-    'Clay',
-    'Sandy',
-    'Silt',
-    'Loam',
-    'Peat',
-    'Chalky'
+  // Sample soil colors
+  const soilColors = [
+    'Black',
+    'Red',
+    'Medium Brown',
+    'Dark Brown',
+    'Light Brown',
+    'Reddish Brown'
   ];
   
   // Sample crop types
   const cropTypes = [
-    'Tomato',
-    'Pepper',
-    'Cucumber',
-    'Lettuce',
-    'Rose',
-    'Succulent',
-    'Fern',
-    'Monstera',
-    'Fiddle Leaf Fig'
+    'Sugarcane',
+    'Jowar',
+    'Cotton',
+    'Rice',
+    'Wheat',
+    'Groundnut',
+    'Maize',
+    'Tur',
+    'Urad',
+    'Moong',
+    'Gram',
+    'Masoor',
+    'Soybean',
+    'Ginger',
+    'Turmeric',
+    'Grapes'
   ];
-  
-  // Simplified fertilizer recommendation function
-  const getFertilizerRecommendation = () => {
-    // Use combination of inputs to determine recommendation
-    if (soilType === 'Clay' && cropType === 'Tomato') {
-      return {
-        name: 'Super Tomato Boost',
-        npk: '5-10-5',
-        applicationRate: '1 tbsp per gallon of water',
-        frequency: 'Every 2 weeks',
-        notes: 'Ideal for clay soils that tend to retain nutrients but may lack proper drainage.'
-      };
-    } else if (soilType === 'Sandy' && cropType === 'Succulent') {
-      return {
-        name: 'Desert Bloom Formula',
-        npk: '2-7-7',
-        applicationRate: '1/2 tsp per gallon',
-        frequency: 'Monthly',
-        notes: 'Low nitrogen formula perfect for succulents in fast-draining sandy soil.'
-      };
-    } else {
-      return {
-        name: 'Universal Plant Food',
-        npk: '10-10-10',
-        applicationRate: '1 tbsp per gallon of water',
-        frequency: 'Every 3-4 weeks',
-        notes: 'Balanced formula suitable for most plants. Adjust frequency based on growth rate and season.'
-      };
+
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    if (!formData.soil_color) newErrors.soil_color = 'Soil color is required';
+    if (!formData.nitrogen) newErrors.nitrogen = 'Nitrogen is required';
+    if (!formData.phosphorus) newErrors.phosphorus = 'Phosphorus is required';
+    if (!formData.potassium) newErrors.potassium = 'Potassium is required';
+    if (!formData.ph) newErrors.ph = 'pH is required';
+    if (!formData.rainfall) newErrors.rainfall = 'Rainfall is required';
+    if (!formData.temperature) newErrors.temperature = 'Temperature is required';
+    if (!formData.crop) newErrors.crop = 'Crop type is required';
+
+    // Additional validation rules
+    const ph = parseFloat(formData.ph);
+    if (ph < 1.5 || ph > 8) {
+      newErrors.ph = 'pH must be between 1.5 and 8';
     }
+
+    const temp = parseInt(formData.temperature);
+    if (temp > 50) {
+      newErrors.temperature = 'Temperature must be less than 50°C';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleGenerateRecommendation = () => {
-    // Simple validation
-    if (!soilType || !temperature || !humidity || !cropType) {
-      Alert.alert('Missing Information', 'Please fill in all fields');
+    if (!validateForm()) {
       return;
     }
-    
     setShowResults(true);
   };
 
   const resetForm = () => {
-    setSoilType('');
-    setTemperature('');
-    setHumidity('');
-    setCropType('');
+    setFormData({
+      soil_color: '',
+      nitrogen: '',
+      phosphorus: '',
+      potassium: '',
+      ph: '',
+      rainfall: '',
+      temperature: '',
+      crop: ''
+    });
+    setErrors({});
     setShowResults(false);
   };
 
-  // Simplified modal selection components
-  const SoilSelectionModal = () => (
+  // Soil Color Selection Modal
+  const SoilColorSelectionModal = () => (
     <Modal
-      visible={soilModalVisible}
+      visible={soilColorModalVisible}
       transparent={true}
       animationType="slide"
-      onRequestClose={() => setSoilModalVisible(false)}
+      onRequestClose={() => setSoilColorModalVisible(false)}
     >
       <TouchableOpacity 
         style={styles.modalOverlay} 
         activeOpacity={1} 
-        onPress={() => setSoilModalVisible(false)}
+        onPress={() => setSoilColorModalVisible(false)}
       >
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Select Soil Type</Text>
-          {soilTypes.map((soil, index) => (
+          <Text style={styles.modalTitle}>Select Soil Color</Text>
+          {soilColors.map((color, index) => (
             <TouchableOpacity
               key={index}
               style={styles.modalItem}
               onPress={() => {
-                setSoilType(soil);
-                setSoilModalVisible(false);
+                setFormData(prev => ({ ...prev, soil_color: color }));
+                setSoilColorModalVisible(false);
               }}
             >
-              <Text style={styles.modalItemText}>{soil}</Text>
+              <Text style={styles.modalItemText}>{color}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -223,6 +237,7 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
     </Modal>
   );
 
+  // Crop Selection Modal
   const CropSelectionModal = () => (
     <Modal
       visible={cropModalVisible}
@@ -236,13 +251,13 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
         onPress={() => setCropModalVisible(false)}
       >
         <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Select Plant Type</Text>
+          <Text style={styles.modalTitle}>Select Crop Type</Text>
           {cropTypes.map((crop, index) => (
             <TouchableOpacity
               key={index}
               style={styles.modalItem}
               onPress={() => {
-                setCropType(crop);
+                setFormData(prev => ({ ...prev, crop }));
                 setCropModalVisible(false);
               }}
             >
@@ -273,7 +288,7 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
       </View>
 
       {/* Modals for Selection */}
-      <SoilSelectionModal />
+      <SoilColorSelectionModal />
       <CropSelectionModal />
 
       <ScrollView 
@@ -282,76 +297,141 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
         showsVerticalScrollIndicator={false}
       >
         {!showResults ? (
-          /* Input Form */
           <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Enter Plant Details</Text>
+            <Text style={styles.sectionTitle}>Enter Soil and Climate Details</Text>
             
-            {/* Soil Type Selector */}
+            {/* Soil Color Selector */}
             <View style={styles.inputGroup}>
               <View style={styles.inputLabel}>
                 <SvgXml xml={iconSoil} width={22} height={22} color="#3D7054" />
-                <Text style={styles.labelText}>Soil Type</Text>
+                <Text style={styles.labelText}>Soil Color</Text>
               </View>
               <TouchableOpacity 
-                style={styles.selector}
-                onPress={() => setSoilModalVisible(true)}
+                style={[styles.selector, errors.soil_color && styles.inputError]}
+                onPress={() => setSoilColorModalVisible(true)}
               >
-                <Text style={soilType ? styles.selectorValue : styles.selectorPlaceholder}>
-                  {soilType || 'Select soil type'}
+                <Text style={formData.soil_color ? styles.selectorValue : styles.selectorPlaceholder}>
+                  {formData.soil_color || 'Select soil color'}
                 </Text>
                 <SvgXml xml={iconDropdown} width={20} height={20} color="#3D7054" />
               </TouchableOpacity>
+              {errors.soil_color && <Text style={styles.errorText}>{errors.soil_color}</Text>}
             </View>
-            
+
+            {/* Nitrogen Input */}
+            <View style={styles.inputGroup}>
+              <View style={styles.inputLabel}>
+                <Text style={styles.labelText}>Nitrogen (mg/kg)</Text>
+              </View>
+              <TextInput
+                style={[styles.textInput, errors.nitrogen && styles.inputError]}
+                value={formData.nitrogen}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, nitrogen: value }))}
+                placeholder="Enter nitrogen content"
+                keyboardType="numeric"
+                placeholderTextColor="#AAA"
+              />
+              {errors.nitrogen && <Text style={styles.errorText}>{errors.nitrogen}</Text>}
+            </View>
+
+            {/* Phosphorus Input */}
+            <View style={styles.inputGroup}>
+              <View style={styles.inputLabel}>
+                <Text style={styles.labelText}>Phosphorus (mg/kg)</Text>
+              </View>
+              <TextInput
+                style={[styles.textInput, errors.phosphorus && styles.inputError]}
+                value={formData.phosphorus}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, phosphorus: value }))}
+                placeholder="Enter phosphorus content"
+                keyboardType="numeric"
+                placeholderTextColor="#AAA"
+              />
+              {errors.phosphorus && <Text style={styles.errorText}>{errors.phosphorus}</Text>}
+            </View>
+
+            {/* Potassium Input */}
+            <View style={styles.inputGroup}>
+              <View style={styles.inputLabel}>
+                <Text style={styles.labelText}>Potassium (mg/kg)</Text>
+              </View>
+              <TextInput
+                style={[styles.textInput, errors.potassium && styles.inputError]}
+                value={formData.potassium}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, potassium: value }))}
+                placeholder="Enter potassium content"
+                keyboardType="numeric"
+                placeholderTextColor="#AAA"
+              />
+              {errors.potassium && <Text style={styles.errorText}>{errors.potassium}</Text>}
+            </View>
+
+            {/* pH Input */}
+            <View style={styles.inputGroup}>
+              <View style={styles.inputLabel}>
+                <Text style={styles.labelText}>pH</Text>
+              </View>
+              <TextInput
+                style={[styles.textInput, errors.ph && styles.inputError]}
+                value={formData.ph}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, ph: value }))}
+                placeholder="Enter soil pH (1.5-8)"
+                keyboardType="numeric"
+                placeholderTextColor="#AAA"
+              />
+              {errors.ph && <Text style={styles.errorText}>{errors.ph}</Text>}
+            </View>
+
+            {/* Rainfall Input */}
+            <View style={styles.inputGroup}>
+              <View style={styles.inputLabel}>
+                <Text style={styles.labelText}>Rainfall (mm)</Text>
+              </View>
+              <TextInput
+                style={[styles.textInput, errors.rainfall && styles.inputError]}
+                value={formData.rainfall}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, rainfall: value }))}
+                placeholder="Enter rainfall"
+                keyboardType="numeric"
+                placeholderTextColor="#AAA"
+              />
+              {errors.rainfall && <Text style={styles.errorText}>{errors.rainfall}</Text>}
+            </View>
+
             {/* Temperature Input */}
             <View style={styles.inputGroup}>
               <View style={styles.inputLabel}>
-                <SvgXml xml={iconTemp} width={22} height={22} color="#3D7054" />
-                <Text style={styles.labelText}>Temperature (°F)</Text>
+                <Text style={styles.labelText}>Temperature (°C)</Text>
               </View>
               <TextInput
-                style={styles.textInput}
-                value={temperature}
-                onChangeText={setTemperature}
-                placeholder="Enter temperature"
+                style={[styles.textInput, errors.temperature && styles.inputError]}
+                value={formData.temperature}
+                onChangeText={(value) => setFormData(prev => ({ ...prev, temperature: value }))}
+                placeholder="Enter temperature (max 50°C)"
                 keyboardType="numeric"
                 placeholderTextColor="#AAA"
               />
+              {errors.temperature && <Text style={styles.errorText}>{errors.temperature}</Text>}
             </View>
-            
-            {/* Humidity Input */}
-            <View style={styles.inputGroup}>
-              <View style={styles.inputLabel}>
-                <SvgXml xml={iconHumidity} width={22} height={22} color="#3D7054" />
-                <Text style={styles.labelText}>Humidity (%)</Text>
-              </View>
-              <TextInput
-                style={styles.textInput}
-                value={humidity}
-                onChangeText={setHumidity}
-                placeholder="Enter humidity"
-                keyboardType="numeric"
-                placeholderTextColor="#AAA"
-              />
-            </View>
-            
+
             {/* Crop Type Selector */}
             <View style={styles.inputGroup}>
               <View style={styles.inputLabel}>
                 <SvgXml xml={iconPlant} width={22} height={22} color="#3D7054" />
-                <Text style={styles.labelText}>Plant Type</Text>
+                <Text style={styles.labelText}>Crop Type</Text>
               </View>
               <TouchableOpacity 
-                style={styles.selector}
+                style={[styles.selector, errors.crop && styles.inputError]}
                 onPress={() => setCropModalVisible(true)}
               >
-                <Text style={cropType ? styles.selectorValue : styles.selectorPlaceholder}>
-                  {cropType || 'Select plant type'}
+                <Text style={formData.crop ? styles.selectorValue : styles.selectorPlaceholder}>
+                  {formData.crop || 'Select crop type'}
                 </Text>
                 <SvgXml xml={iconDropdown} width={20} height={20} color="#3D7054" />
               </TouchableOpacity>
+              {errors.crop && <Text style={styles.errorText}>{errors.crop}</Text>}
             </View>
-            
+
             {/* Submit Button */}
             <TouchableOpacity
               style={styles.recommendButton}
@@ -370,57 +450,66 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
             <View style={styles.inputSummary}>
               <View style={styles.summaryItem}>
                 <SvgXml xml={iconSoil} width={18} height={18} color="#3D7054" />
-                <Text style={styles.summaryText}>{soilType}</Text>
+                <Text style={styles.summaryText}>Soil: {formData.soil_color}</Text>
               </View>
               <View style={styles.summaryItem}>
-                <SvgXml xml={iconTemp} width={18} height={18} color="#3D7054" />
-                <Text style={styles.summaryText}>{temperature}°F</Text>
+                <Text style={styles.summaryText}>N: {formData.nitrogen} mg/kg</Text>
               </View>
               <View style={styles.summaryItem}>
-                <SvgXml xml={iconHumidity} width={18} height={18} color="#3D7054" />
-                <Text style={styles.summaryText}>{humidity}%</Text>
+                <Text style={styles.summaryText}>P: {formData.phosphorus} mg/kg</Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryText}>K: {formData.potassium} mg/kg</Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryText}>pH: {formData.ph}</Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryText}>Rainfall: {formData.rainfall} mm</Text>
+              </View>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryText}>Temp: {formData.temperature}°C</Text>
               </View>
               <View style={styles.summaryItem}>
                 <SvgXml xml={iconPlant} width={18} height={18} color="#3D7054" />
-                <Text style={styles.summaryText}>{cropType}</Text>
+                <Text style={styles.summaryText}>Crop: {formData.crop}</Text>
               </View>
             </View>
             
             {/* Fertilizer details */}
-            {(() => {
-              const recommendation = getFertilizerRecommendation();
-              return (
-                <View style={styles.fertilizerCard}>
-                  <View style={styles.fertilizerHeader}>
-                    <SvgXml xml={iconFert} width={28} height={28} color="#3D7054" />
-                    <Text style={styles.fertilizerName}>{recommendation.name}</Text>
-                  </View>
-                  
-                  <View style={styles.npkContainer}>
-                    <View style={styles.npkBadge}>
-                      <Text style={styles.npkText}>NPK: {recommendation.npk}</Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.fertilizerDetails}>
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailLabel}>Application Rate:</Text>
-                      <Text style={styles.detailValue}>{recommendation.applicationRate}</Text>
-                    </View>
-                    
-                    <View style={styles.detailItem}>
-                      <Text style={styles.detailLabel}>Frequency:</Text>
-                      <Text style={styles.detailValue}>{recommendation.frequency}</Text>
-                    </View>
-                    
-                    <View style={styles.detailNotes}>
-                      <Text style={styles.notesLabel}>Notes:</Text>
-                      <Text style={styles.notesText}>{recommendation.notes}</Text>
-                    </View>
-                  </View>
+            <View style={styles.fertilizerCard}>
+              <View style={styles.fertilizerHeader}>
+                <SvgXml xml={iconFert} width={28} height={28} color="#3D7054" />
+                <Text style={styles.fertilizerName}>Custom Fertilizer Recommendation</Text>
+              </View>
+              
+              <View style={styles.npkContainer}>
+                <View style={styles.npkBadge}>
+                  <Text style={styles.npkText}>NPK: {formData.nitrogen}-{formData.phosphorus}-{formData.potassium}</Text>
                 </View>
-              );
-            })()}
+              </View>
+              
+              <View style={styles.fertilizerDetails}>
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Soil Analysis:</Text>
+                  <Text style={styles.detailValue}>{formData.soil_color} soil, pH {formData.ph}</Text>
+                </View>
+                
+                <View style={styles.detailItem}>
+                  <Text style={styles.detailLabel}>Climate Conditions:</Text>
+                  <Text style={styles.detailValue}>{formData.temperature}°C, {formData.rainfall}mm rainfall</Text>
+                </View>
+                
+                <View style={styles.detailNotes}>
+                  <Text style={styles.notesLabel}>Recommendation Notes:</Text>
+                  <Text style={styles.notesText}>
+                    Based on your {formData.crop} crop requirements and current soil conditions, 
+                    we recommend a balanced fertilizer with NPK ratio of {formData.nitrogen}-{formData.phosphorus}-{formData.potassium}. 
+                    Adjust application rates based on seasonal changes and crop growth stage.
+                  </Text>
+                </View>
+              </View>
+            </View>
             
             {/* Reset Button */}
             <TouchableOpacity
@@ -762,7 +851,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#3D7054',
-  }
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  inputError: {
+    borderColor: '#ef4444',
+  },
 });
 
 export default FertilizerRecommendation;

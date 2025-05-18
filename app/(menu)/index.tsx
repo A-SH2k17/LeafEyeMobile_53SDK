@@ -1,6 +1,12 @@
 // LeafEyeMainMenu.jsx
-import React, { useState } from 'react';
+import BottomNav from '@/components/nonprimitive/BottomNav';
+import { styles as baseStyles } from '@/stylesheet/styles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
+  Image,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -10,8 +16,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
-import BottomNav from '@/components/nonprimitive/BottomNav';
-import { styles } from '@/stylesheet/styles';
 
 // SVG icons as XML strings
 const iconLeaf = `
@@ -64,11 +68,64 @@ const iconFert = `
   <path d="M20,4 C15,1 6,1 4,10 C2,19 10,22 18,16 C18,16 20,5 12,10 M4,10 C4,10 8,12 12,10 M12,10 C12,10 16,8 18,16 M12,10 L12,21"/>
 </svg>
 `
+interface Plant {
+  datePlanted: string;
+  plantType: string;
+  image: string;
+  id?: number; // Adding optional id for navigation
+}
+// Define the styles before the component
+const styles = {
+  ...baseStyles,
+  profileContainer: {
+    position: 'relative' as const,
+  },
+  profileDropdown: {
+    position: 'absolute' as const,
+    top: 40,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 8,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 1000,
+    minWidth: 150,
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+  },
+  dropdownItemText: {
+    color: '#1F2937',
+    fontSize: 16,
+  },
+};
+
+// Define the type for menu items
+interface MenuItem {
+  title: string;
+  icon: string;
+  iconColor: string;
+  description: string;
+}
+
 const LeafEyeMainMenu = () => {
   const [notificationCount, setNotificationCount] = useState(3);
+  const [username, setUsername] = useState<string>('');
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       title: 'My Plants',
       icon: iconLeaf,
@@ -76,7 +133,7 @@ const LeafEyeMainMenu = () => {
       description: 'Track and manage your plant collection'
     },
     {
-      title: 'Feritilzer',
+      title: 'Fertilizer',
       icon: iconFert,
       iconColor: '#3D7054',
       description: 'Scan and detect plant diseases'
@@ -89,11 +146,91 @@ const LeafEyeMainMenu = () => {
     }
   ];
 
-  const recentPlants = [
-    { name: 'Monstera Deliciosa', status: 'Healthy', lastWatered: '2 days ago' },
-    { name: 'Fiddle Leaf Fig', status: 'Needs water', lastWatered: '7 days ago' },
-    { name: 'Snake Plant', status: 'Healthy', lastWatered: '12 days ago' }
-  ];
+  const [recentPlants,setRecentPlants]=useState<Plant[]>([]); 
+
+  // Function to get greeting based on time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  // Function to get username from session
+  const getSessionData = async () => {
+    try {
+      const sessionString = await AsyncStorage.getItem('session');
+      if (sessionString) {
+        const sessionData = JSON.parse(sessionString);
+        if (sessionData.user?.username) {
+          setUsername(sessionData.user.username);
+        }
+      }
+    } catch (error) {
+      console.error('Error getting session data:', error);
+    }
+  };
+
+  // Add logout function
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('session');
+      router.push('/(logreg)') // Use the root path to navigate to the root index
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  // Get session data when component mounts
+  useEffect(() => {
+    getSessionData();
+  }, []);
+
+  useEffect(() => {
+    getPlants();
+  }, []);
+
+
+  const getPlants = async () => {
+    try{
+      const response = await axios.get('http://leafeye.test/api/plants_home')
+      console.log(response.data.message)
+      setRecentPlants(response.data.message)
+    }catch(error){
+      console.log(error)
+    }
+  }
+
+  const handleQuick = (item: MenuItem) => {
+    switch(item.title) {
+      case 'My Plants':
+        router.push('/(plant_monitor)');
+        break;
+      case 'Fertilizer':
+        router.push('/(fertilizerreccomendation)');
+        break;
+      case 'LeafEye Chatbot':
+        // Handle chatbot navigation when implemented
+        alert('Chatbot feature coming soon!');
+        break;
+      default:
+        alert(item.title);
+    }
+  };
+
+  const handlePlantPress = (plant: Plant) => {
+    // Navigate to plant details screen with the plant data
+    router.push({
+      pathname: '/(plant_monitor)',
+      params: { 
+        screen: 'plant',
+        plantType: plant.plantType,
+        datePlanted: plant.datePlanted,
+        image: plant.image,
+        id: plant.id
+      }
+    });
+  };
 
   return (
     <SafeAreaView style={[styles.container, { paddingTop: insets.top }]}>
@@ -117,12 +254,33 @@ const LeafEyeMainMenu = () => {
               height={30}
               color="#018269"
             />
-            <Text style={styles.greeting}>Good afternoon, Gardener!</Text>
+            <Text style={styles.greeting}>
+              {getGreeting()}, {username || 'Gardener'}!
+            </Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.profileButton}>
-              <SvgXml xml={iconUser} width={26} height={26} color="#FFFFFF" />
-            </TouchableOpacity>
+            <View style={styles.profileContainer}>
+              <TouchableOpacity 
+                style={styles.profileButton}
+                onPress={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              >
+                <SvgXml xml={iconUser} width={26} height={26} color="#FFFFFF" />
+              </TouchableOpacity>
+              
+              {isProfileMenuOpen && (
+                <View style={styles.profileDropdown}>
+                  <TouchableOpacity 
+                    style={styles.dropdownItem}
+                    onPress={() => {
+                      setIsProfileMenuOpen(false);
+                      handleLogout();
+                    }}
+                  >
+                    <Text style={styles.dropdownItemText}>Logout</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </View>
         </View>
       </View>
@@ -139,6 +297,7 @@ const LeafEyeMainMenu = () => {
             <TouchableOpacity 
               key={index}
               style={styles.quickActionItem}
+              onPress={()=>handleQuick(item)}
             >
               <SvgXml xml={item.icon} width={32} height={32} color={item.iconColor} />
               <Text style={styles.quickActionText}>{item.title}</Text>
@@ -158,20 +317,22 @@ const LeafEyeMainMenu = () => {
             <TouchableOpacity 
               key={index}
               style={styles.plantCard}
+              onPress={() => handlePlantPress(plant)}
             >
-              <View style={styles.plantIconContainer}>
-                <SvgXml xml={iconLeaf} width={32} height={32} color="#3D7054" />
-              </View>
+              <TouchableOpacity 
+                style={styles.plantIconContainer}
+                onPress={() => handlePlantPress(plant)}
+              >
+                <Image 
+                  source={{uri: plant.image}} 
+                  style={{ width: 60, height: 60, borderRadius: 10}} 
+                  resizeMode='cover'
+                />
+              </TouchableOpacity>
               <View style={styles.plantInfo}>
-                <Text style={styles.plantName}>{plant.name}</Text>
+                <Text style={styles.plantName}>{plant.plantType}</Text>
                 <View style={styles.plantStatusRow}>
-                  <Text style={[
-                    styles.plantStatus,
-                    plant.status === 'Healthy' ? styles.statusHealthy : styles.statusWarning
-                  ]}>
-                    {plant.status}
-                  </Text>
-                  <Text style={styles.plantWatered}>Watered {plant.lastWatered}</Text>
+                  <Text style={styles.plantWatered}>Planted {plant.datePlanted}</Text>
                 </View>
               </View>
             </TouchableOpacity>
@@ -182,8 +343,6 @@ const LeafEyeMainMenu = () => {
     </SafeAreaView>
   );
 };
-
-
 
 // Wrap component with SafeAreaProvider in your app entry
 // import { SafeAreaProvider } from 'react-native-safe-area-context';

@@ -1,4 +1,4 @@
-import { StyleSheet,Platform} from "react-native";
+import { Platform, StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -219,6 +219,14 @@ export const styles = StyleSheet.create({
       },
     }),
   },
+  identifyButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   identifyText: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 30 : 10, // Adjusted for iOS bottom insets
@@ -327,4 +335,17 @@ export const styles = StyleSheet.create({
     color: '#047857',
     fontWeight: '500',
   },
+
+   Logheader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+
+  backIcon: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+
+
 });

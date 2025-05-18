@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 
 
 
-export default function FertLayout() {
+export default function LogRegLayout() {
 
   return (
    <Stack>
