@@ -1,9 +1,11 @@
 // SimplifiedFertilizerRecommendation.jsx
 import BottomNav from '@/components/nonprimitive/BottomNav';
 import { StackNavigationProp } from '@react-navigation/stack';
+import axios from 'axios';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Modal,
   Platform,
   SafeAreaView,
@@ -13,7 +15,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  Linking
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
@@ -121,6 +124,8 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
   });
   const [showResults, setShowResults] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [loading, setLoading] = useState(false);
+  const [serverResult, setServerResult] = useState<any>(null);
   
   // Modal state for improved dropdowns
   const [soilColorModalVisible, setSoilColorModalVisible] = useState(false);
@@ -183,11 +188,23 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleGenerateRecommendation = () => {
+  const handleGenerateRecommendation = async () => {
     if (!validateForm()) {
       return;
     }
     setShowResults(true);
+    setLoading(true);
+    setServerResult(null);
+    try {
+      const response = await axios.post('https://leafeye.eu-1.sharedwithexpose.com/api/fertilizer_recommendation', formData);
+      setServerResult(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.log(error);
+      setServerResult({ error: 'Failed to fetch recommendation.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
@@ -252,18 +269,24 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
       >
         <View style={styles.modalContent}>
           <Text style={styles.modalTitle}>Select Crop Type</Text>
-          {cropTypes.map((crop, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.modalItem}
-              onPress={() => {
-                setFormData(prev => ({ ...prev, crop }));
-                setCropModalVisible(false);
-              }}
-            >
-              <Text style={styles.modalItemText}>{crop}</Text>
-            </TouchableOpacity>
-          ))}
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            showsVerticalScrollIndicator={true}
+          >
+            {cropTypes.map((crop, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.modalItem}
+                onPress={() => {
+                  setFormData(prev => ({ ...prev, crop }));
+                  setCropModalVisible(false);
+                }}
+              >
+                <Text style={styles.modalItemText}>{crop}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       </TouchableOpacity>
     </Modal>
@@ -442,81 +465,94 @@ const FertilizerRecommendation = ({ navigation }: FertilizerRecommendationProps)
             </TouchableOpacity>
           </View>
         ) : (
-          /* Results Section */
           <View style={styles.resultSection}>
-            <Text style={styles.sectionTitle}>Recommended Fertilizer</Text>
-            
-            {/* Summary of inputs */}
-            <View style={styles.inputSummary}>
-              <View style={styles.summaryItem}>
-                <SvgXml xml={iconSoil} width={18} height={18} color="#3D7054" />
-                <Text style={styles.summaryText}>Soil: {formData.soil_color}</Text>
+            {loading ? (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+                <ActivityIndicator size="large" color="#3D7054" />
+                <Text style={{ marginTop: 16, color: '#3D7054' }}>Loading recommendation...</Text>
               </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryText}>N: {formData.nitrogen} mg/kg</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryText}>P: {formData.phosphorus} mg/kg</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryText}>K: {formData.potassium} mg/kg</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryText}>pH: {formData.ph}</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryText}>Rainfall: {formData.rainfall} mm</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <Text style={styles.summaryText}>Temp: {formData.temperature}°C</Text>
-              </View>
-              <View style={styles.summaryItem}>
-                <SvgXml xml={iconPlant} width={18} height={18} color="#3D7054" />
-                <Text style={styles.summaryText}>Crop: {formData.crop}</Text>
-              </View>
-            </View>
-            
-            {/* Fertilizer details */}
-            <View style={styles.fertilizerCard}>
-              <View style={styles.fertilizerHeader}>
-                <SvgXml xml={iconFert} width={28} height={28} color="#3D7054" />
-                <Text style={styles.fertilizerName}>Custom Fertilizer Recommendation</Text>
-              </View>
-              
-              <View style={styles.npkContainer}>
-                <View style={styles.npkBadge}>
-                  <Text style={styles.npkText}>NPK: {formData.nitrogen}-{formData.phosphorus}-{formData.potassium}</Text>
-                </View>
-              </View>
-              
-              <View style={styles.fertilizerDetails}>
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Soil Analysis:</Text>
-                  <Text style={styles.detailValue}>{formData.soil_color} soil, pH {formData.ph}</Text>
+            ) : serverResult && !serverResult.error ? (
+              <>
+                <Text style={styles.sectionTitle}>Recommended Fertilizer</Text>
+                
+                {/* Summary of inputs */}
+                <View style={styles.inputSummary}>
+                  <View style={styles.summaryItem}>
+                    <SvgXml xml={iconSoil} width={18} height={18} color="#3D7054" />
+                    <Text style={styles.summaryText}>Soil: {formData.soil_color}</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryText}>N: {formData.nitrogen} mg/kg</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryText}>P: {formData.phosphorus} mg/kg</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryText}>K: {formData.potassium} mg/kg</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryText}>pH: {formData.ph}</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryText}>Rainfall: {formData.rainfall} mm</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryText}>Temp: {formData.temperature}°C</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <SvgXml xml={iconPlant} width={18} height={18} color="#3D7054" />
+                    <Text style={styles.summaryText}>Crop: {formData.crop}</Text>
+                  </View>
                 </View>
                 
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Climate Conditions:</Text>
-                  <Text style={styles.detailValue}>{formData.temperature}°C, {formData.rainfall}mm rainfall</Text>
+                {/* Fertilizer details */}
+                <View style={styles.fertilizerCard}>
+                  <View style={styles.fertilizerHeader}>
+                    <SvgXml xml={iconFert} width={28} height={28} color="#3D7054" />
+                    <Text style={styles.fertilizerName}>Custom Fertilizer Recommendation</Text>
+                  </View>
+                  
+                  <View style={styles.npkContainer}>
+                    <View style={styles.npkBadge}>
+                      <Text style={styles.npkText}>{serverResult.fertilizer}</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.fertilizerDetails}>
+                    <View style={styles.detailItem}>
+                      <Text style={styles.detailLabel}>Soil Analysis:</Text>
+                      <Text style={styles.detailValue}>{formData.soil_color} soil, pH {formData.ph}</Text>
+                    </View>
+                    
+                    <View style={styles.detailItem}>
+                      <Text style={styles.detailLabel}>Climate Conditions:</Text>
+                      <Text style={styles.detailValue}>{formData.temperature}°C, {formData.rainfall}mm rainfall</Text>
+                    </View>
+                    
+                    <View style={styles.detailNotes}>
+                      <Text style={styles.notesLabel}>About the fertilizer:</Text>
+                      <Text style={styles.notesText}>
+                        Based on your {formData.crop} crop requirements and current soil conditions, 
+                        we recommend {serverResult.fertilizer}.
+                        {serverResult.description}
+                        To learn more about how to take care of {formData.crop}, please click the youtube link below. {`\n`}
+                        <Text style={{ color: '#3D7054', textDecorationLine: 'underline' }} onPress={() => Linking.openURL(serverResult.link)}>
+                          {serverResult.link}
+                        </Text>
+                      </Text>
+                    </View>
+                  </View>
                 </View>
-                
-                <View style={styles.detailNotes}>
-                  <Text style={styles.notesLabel}>Recommendation Notes:</Text>
-                  <Text style={styles.notesText}>
-                    Based on your {formData.crop} crop requirements and current soil conditions, 
-                    we recommend a balanced fertilizer with NPK ratio of {formData.nitrogen}-{formData.phosphorus}-{formData.potassium}. 
-                    Adjust application rates based on seasonal changes and crop growth stage.
-                  </Text>
-                </View>
-              </View>
-            </View>
-            
+              </>
+            ) : (
+              <Text style={{ color: 'red', textAlign: 'center' }}>{serverResult?.error || 'No result.'}</Text>
+            )}
             {/* Reset Button */}
             <TouchableOpacity
               style={styles.resetButton}
               onPress={resetForm}
             >
-              <Text style={styles.resetButtonText}>Try Different Parameters</Text>
+              <Text style={styles.resetButtonText}>Get Other Recommendation</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -638,10 +674,11 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: '80%',
+    height: 400, // fixed height for scrollable area
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 20,
-    maxHeight: '60%',
+    maxHeight: '80%',
   },
   modalTitle: {
     fontSize: 18,

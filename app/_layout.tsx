@@ -41,6 +41,7 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(fertilizerreccomendation)" options={{ headerShown: false }} />
           <Stack.Screen name="(menu)" options={{ headerShown: false }} />
+          <Stack.Screen name="(disease)" options={{ headerShown: false }} />
           <Stack.Screen name="(logreg)" options={{ headerShown: false }} />
           <Stack.Screen name="(plant_monitor)" options={{ headerShown: false }} />
           <Stack.Screen name="index" options={{ headerShown: false }} />

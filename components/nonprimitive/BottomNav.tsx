@@ -67,7 +67,7 @@ export default function BottomNav(){
       </View>
       
       {/* Floating identify button */}
-      <TouchableOpacity style={styles.identifyButton}>
+      <TouchableOpacity style={styles.identifyButton} onPress={()=>router.push('/(disease)' as any)}>
         <SvgXml xml={iconCamera} width={28} height={28} color="#FFFFFF" />
       </TouchableOpacity>
       <Text style={styles.identifyText}>Diagnose</Text>

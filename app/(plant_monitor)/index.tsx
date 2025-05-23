@@ -51,7 +51,7 @@ export default function PlantMonitor() {
 
   const getPlants = async () => {
     try {
-      const response = await axios.get<{ message: Plant[] }>('http://leafeye.test/api/plants_monitor');
+      const response = await axios.get<{ message: Plant[] }>('https://leafeye.eu-1.sharedwithexpose.com/api/plants_monitor');
       console.log(response.data.message);
       setPlants(response.data.message);
     } catch (error) {

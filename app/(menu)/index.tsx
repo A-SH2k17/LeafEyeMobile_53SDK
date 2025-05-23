@@ -191,9 +191,10 @@ const LeafEyeMainMenu = () => {
   }, []);
 
 
+ 
   const getPlants = async () => {
     try{
-      const response = await axios.get('http://leafeye.test/api/plants_home')
+      const response = await axios.get('https://leafeye.eu-1.sharedwithexpose.com/api/plants_home')
       console.log(response.data.message)
       setRecentPlants(response.data.message)
     }catch(error){

@@ -48,6 +48,7 @@ const styles = {
     },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    marginBottom: 16,
   } as ViewStyle,
   getStartedText: {
     color: '#FFFFFF',
@@ -76,13 +77,13 @@ export default function WelcomeScreen() {
         </View>
         
         <Text style={styles.welcomeText}>Let's Go Green Together</Text>
-        
         <TouchableOpacity 
           style={styles.getStartedButton}
           onPress={() => router.push('/(logreg)' as any)}
         >
           <Text style={styles.getStartedText}>Get Started</Text>
         </TouchableOpacity>
+        
       </View>
     </SafeAreaView>
   );

@@ -35,7 +35,7 @@ const PlantDetailsScreen = () => {
 
   const getPlants = async () => {
     try {
-      const response = await axios.post('http://leafeye.test/api/monitor_images', {
+      const response = await axios.post('https://leafeye.eu-1.sharedwithexpose.com/api/monitor_images', {
         monitor_id: id,
       });
       console.log(response.data.message);
