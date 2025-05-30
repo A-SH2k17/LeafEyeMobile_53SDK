@@ -3,7 +3,7 @@ import { styles as baseStyles } from '@/stylesheet/styles';
 import axios from 'axios';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 
@@ -18,16 +18,24 @@ interface Plant{
   image:string,
   datePlanted:string,
   id:number,
+  disease_id?: string,
+  disease?: string,
+  collection_name?: string,
 }
 
 const PlantDetailsScreen = () => {
   const params = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { plantType, datePlanted, image, id } = params;
+  const { plantType, datePlanted, image, id, collection_name } = params;
+  
+  // Add logging to check params
+  console.log('Route params:', params);
+  
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [images, setImages] = useState<Plant[]>([]);
+  const [currentCollectionName, setCurrentCollectionName] = useState<string | undefined>(collection_name as string);
 
   useEffect(() => {
     getPlants();
@@ -38,10 +46,10 @@ const PlantDetailsScreen = () => {
       const response = await axios.post('https://leafeye.eu-1.sharedwithexpose.com/api/monitor_images', {
         monitor_id: id,
       });
-      console.log(response.data.message);
+      console.log('API Response:', JSON.stringify(response.data.message, null, 2));
       setImages(response.data.message);
     } catch (error) {
-      console.log(error);
+      console.log('API Error:', error);
     }
   };
 
@@ -84,6 +92,43 @@ const PlantDetailsScreen = () => {
       <View style={styles.infoContainer}>
         <Text style={styles.plantName}>{plantType}</Text>
         <Text style={styles.plantDate}>Planted on: {datePlanted}</Text>
+        <View style={styles.collectionRow}>
+          {currentCollectionName ? (
+            <Text style={styles.collectionName}>Collection: {currentCollectionName}</Text>
+          ) : (
+            <Text style={styles.collectionName}>No collection assigned</Text>
+          )}
+        </View>
+        
+        <TouchableOpacity 
+          style={styles.reminderButton}
+          onPress={() => Alert.alert(
+            'Water Reminder',
+            'Would you like to set a reminder to water this plant?',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { 
+                text: 'Set Reminder',
+                onPress: () => Alert.alert('Success', 'Reminder set successfully!')
+              }
+            ]
+          )}
+        >
+          <View style={styles.reminderContent}>
+            <SvgXml 
+              xml={`
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                  <path d="M12 6v6l4 2"/>
+                </svg>
+              `}
+              width={20}
+              height={20}
+              color="#3D7054"
+            />
+            <Text style={styles.reminderText}>Remind to water plant</Text>
+          </View>
+        </TouchableOpacity>
         
         {/* Add more plant details here as needed */}
         <View style={styles.detailsSection}>
@@ -95,23 +140,32 @@ const PlantDetailsScreen = () => {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
       >
-        {images.map((plant) => (
-          <View 
-            key={plant.id} 
-            style={styles.monitorCard}
-          >
-            <TouchableOpacity onPress={() => handleImagePress(plant.image)}>
-              <Image 
-                source={{ uri: plant.image }} 
-                style={styles.monitorImage}
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
-            <View style={styles.monitorInfo}>
-              <Text style={styles.monitorDate}>Planted on {plant.datePlanted}</Text>
+        {images.map((plant) => {
+          console.log('Plant data:', JSON.stringify(plant, null, 2));
+          return (
+            <View 
+              key={plant.id} 
+              style={styles.monitorCard}
+            >
+              <TouchableOpacity onPress={() => handleImagePress(plant.image)}>
+                <Image 
+                  source={{ uri: plant.image }} 
+                  style={styles.monitorImage}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+              <View style={styles.monitorInfo}>
+                <Text style={styles.monitorDate}>Planted on {plant.datePlanted}</Text>
+                <View style={styles.diseaseInfo}>
+                  <Text style={styles.diseaseName}>
+                    Diagnosis: {plant.disease || 'Not Diagnosed'}
+                  </Text>
+        
+                </View>
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       <Modal
@@ -199,6 +253,11 @@ const styles = StyleSheet.create({
   plantDate: {
     fontSize: 16,
     color: '#6B7280',
+    marginBottom: 8,
+  },
+  collectionName: {
+    fontSize: 16,
+    color: '#3D7054',
     marginBottom: 20,
   },
   detailsSection: {
@@ -249,6 +308,45 @@ const styles = StyleSheet.create({
   expandedImage: {
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height * 0.8,
+  },
+  diseaseInfo: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#F0F9F0',
+    borderRadius: 6,
+  },
+  diseaseName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#2E7D32',
+    marginBottom: 4,
+  },
+  confidenceText: {
+    fontSize: 12,
+    color: '#3D7054',
+  },
+  collectionRow: {
+    marginBottom: 20,
+  },
+  reminderButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#F0F9F0',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#3D7054',
+    marginBottom: 20,
+  },
+  reminderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  reminderText: {
+    color: '#3D7054',
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });
 

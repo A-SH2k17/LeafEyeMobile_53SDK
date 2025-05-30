@@ -16,6 +16,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View
 } from 'react-native';
@@ -125,11 +126,85 @@ interface DiseaseDetectionProps {
   navigation: DiseaseDetectionScreenNavigationProp;
 }
 
+interface Collection {
+  id: number;
+  name: string;
+}
+
 const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
   const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [collections, setCollections] = useState<Collection[]>([]);
+  const [selectedCollection, setSelectedCollection] = useState<Collection | null>(null);
+  const [newCollectionName, setNewCollectionName] = useState('');
+  const [isNewCollection, setIsNewCollection] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [showSaveOptions, setShowSaveOptions] = useState(false);
+
+  const fetchCollections = async (plantId: string) => {
+    try {
+      console.log('Fetching collections for plant_id:', plantId);
+      const response = await axios.get('https://leafeye.eu-1.sharedwithexpose.com/api/getCollectionNames', {
+        params: {
+          plant_id: plantId
+        }
+      });
+      console.log('Collections response:', response.data);
+      setCollections(response.data.collections);
+    } catch (error) {
+      console.error('Error fetching collections:', error);
+      setCollections([]);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!selectedImage || !result) {
+      Alert.alert('Error', 'No image or detection result to save');
+      return;
+    }
+
+    const collectionName = isNewCollection ? newCollectionName : selectedCollection?.name;
+    if (!collectionName) {
+      Alert.alert('Error', 'Please select or enter a collection name');
+      return;
+    }
+
+    setSaveLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', {
+        uri: selectedImage,
+        type: 'image/jpeg',
+        name: 'image.jpg'
+      } as any);
+      formData.append('collection_name', collectionName);
+      formData.append('disease_id', result.disease_id);
+      formData.append('plant_id', result.plant_id);
+
+      const response = await axios.post('https://leafeye.eu-1.sharedwithexpose.com/api/saveDetection', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.success) {
+        Alert.alert('Success', 'Successfully saved to collection');
+        setShowSaveOptions(false);
+        setSelectedCollection(null);
+        setNewCollectionName('');
+        setIsNewCollection(false);
+      } else {
+        Alert.alert('Error', response.data.error || 'Failed to save to collection');
+      }
+    } catch (error: any) {
+      console.error('Error saving to collection:', error);
+      Alert.alert('Error', error.response?.data?.error || 'Error saving to collection');
+    } finally {
+      setSaveLoading(false);
+    }
+  };
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -175,6 +250,7 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
   const analyzeImage = async (imageUri: string) => {
     setLoading(true);
     setResult(null);
+    setShowSaveOptions(false);
     try {
       // Check file size
       const fileInfo = await FileSystem.getInfoAsync(imageUri) as FileInfoWithSize;
@@ -224,6 +300,24 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
 
       if (response.data) {
         setResult(response.data);
+        // Show save prompt after successful detection
+        Alert.alert(
+          'Detection Complete',
+          'Would you like to save this detection to a collection?',
+          [
+            {
+              text: 'No',
+              style: 'cancel'
+            },
+            {
+              text: 'Yes',
+              onPress: async () => {
+                await fetchCollections(response.data.plant_id);
+                setShowSaveOptions(true);
+              }
+            }
+          ]
+        );
       } else {
         throw new Error('No data received from server');
       }
@@ -351,6 +445,90 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
                   </View>
                 ))}
               </View>
+
+              {/* Save to Collection Section */}
+              {showSaveOptions && (
+                <View style={styles.saveSection}>
+                  <Text style={styles.saveTitle}>Save to Collection</Text>
+                  
+                  {!isNewCollection ? (
+                    <>
+                      <Text style={styles.saveSubtitle}>Select Collection</Text>
+                      {collections.length === 0 ? (
+                        <View style={styles.noCollectionsContainer}>
+                          <Text style={styles.noCollectionsText}>No collections available</Text>
+                          <TouchableOpacity
+                            style={styles.newCollectionButton}
+                            onPress={() => setIsNewCollection(true)}
+                          >
+                            <Text style={styles.newCollectionButtonText}>Create New Collection</Text>
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <>
+                          <ScrollView style={styles.collectionsList}>
+                            {collections.map((collection) => (
+                              <TouchableOpacity
+                                key={collection.id}
+                                style={[
+                                  styles.collectionItem,
+                                  selectedCollection?.id === collection.id && styles.selectedCollectionItem
+                                ]}
+                                onPress={() => setSelectedCollection(collection)}
+                              >
+                                <Text style={styles.collectionItemText}>{collection.name}</Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                          <TouchableOpacity
+                            style={styles.newCollectionButton}
+                            onPress={() => setIsNewCollection(true)}
+                          >
+                            <Text style={styles.newCollectionButtonText}>Create New Collection</Text>
+                          </TouchableOpacity>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Text style={styles.saveSubtitle}>New Collection Name</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={newCollectionName}
+                        onChangeText={setNewCollectionName}
+                        placeholder="Enter collection name"
+                        placeholderTextColor="#666"
+                      />
+                      <TouchableOpacity
+                        style={styles.backToCollectionsButton}
+                        onPress={() => setIsNewCollection(false)}
+                      >
+                        <Text style={styles.backToCollectionsText}>Back to Collections</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+
+                  <View style={styles.saveButtons}>
+                    <TouchableOpacity
+                      style={[styles.saveButton, styles.cancelButton]}
+                      onPress={() => setShowSaveOptions(false)}
+                    >
+                      <Text style={styles.saveButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.saveButton, styles.confirmButton]}
+                      onPress={handleSave}
+                      disabled={saveLoading}
+                    >
+                      {saveLoading ? (
+                        <ActivityIndicator color="#FFFFFF" size="small" />
+                      ) : (
+                        <Text style={styles.saveButtonText}>Save</Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
             </View>
           ) : null}
         </View>
@@ -532,6 +710,111 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#424242',
     lineHeight: 24,
+  },
+  saveSection: {
+    marginTop: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  saveTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    marginBottom: 16,
+  },
+  saveSubtitle: {
+    fontSize: 16,
+    color: '#424242',
+    marginBottom: 12,
+  },
+  collectionsList: {
+    maxHeight: 200,
+    marginBottom: 16,
+  },
+  collectionItem: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#F5F5F5',
+  },
+  selectedCollectionItem: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#3D7054',
+    borderWidth: 1,
+  },
+  collectionItemText: {
+    fontSize: 16,
+    color: '#424242',
+  },
+  newCollectionButton: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#3D7054',
+    marginBottom: 16,
+  },
+  newCollectionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: '#FFFFFF',
+  },
+  backToCollectionsButton: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+    marginBottom: 16,
+  },
+  backToCollectionsText: {
+    color: '#424242',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  saveButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  saveButton: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 8,
+    marginHorizontal: 8,
+  },
+  cancelButton: {
+    backgroundColor: '#F5F5F5',
+  },
+  confirmButton: {
+    backgroundColor: '#3D7054',
+  },
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  noCollectionsContainer: {
+    padding: 16,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  noCollectionsText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 12,
   },
 });
 

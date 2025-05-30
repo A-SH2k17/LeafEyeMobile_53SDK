@@ -33,8 +33,6 @@ const iconSearch = `
 </svg>
 `;
 
-
-
 const iconMessage = `
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -72,7 +70,8 @@ interface Plant {
   datePlanted: string;
   plantType: string;
   image: string;
-  monitor_id: number; // Adding optional id for navigation
+  monitor_id: number;
+  collection_name?: string;
 }
 // Define the styles before the component
 const styles = {
@@ -203,7 +202,7 @@ const LeafEyeMainMenu = () => {
   }
 
   const handleQuick = (item: MenuItem) => {
-    switch(item.title) {
+    switch (item.title) {
       case 'My Plants':
         router.push('/(plant_monitor)');
         break;
@@ -211,8 +210,7 @@ const LeafEyeMainMenu = () => {
         router.push('/(fertilizerreccomendation)');
         break;
       case 'LeafEye Chatbot':
-        // Handle chatbot navigation when implemented
-        alert('Chatbot feature coming soon!');
+        router.push('/(chatbot)');
         break;
       default:
         alert(item.title);
@@ -227,7 +225,8 @@ const LeafEyeMainMenu = () => {
         plantType: plant.plantType,
         datePlanted: plant.datePlanted,
         image: plant.image,
-        id: plant.monitor_id
+        id: plant.monitor_id,
+        collection_name: plant.collection_name
       }
     });
   };

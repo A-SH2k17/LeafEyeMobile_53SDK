@@ -20,6 +20,7 @@ interface Plant {
   plantType: string;
   datePlanted: string;
   image: string;
+  collection_name: string;
 }
 
 // Back arrow icon
@@ -40,7 +41,8 @@ export default function PlantMonitor() {
         plantType: plant.plantType,
         datePlanted: plant.datePlanted,
         image: plant.image,
-        id: plant.monitor_id
+        id: plant.monitor_id,
+        collection_name: plant.collection_name
       }
     });
   };
