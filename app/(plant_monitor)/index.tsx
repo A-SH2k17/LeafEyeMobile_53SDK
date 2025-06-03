@@ -94,7 +94,7 @@ export default function PlantMonitor() {
               resizeMode="cover"
             />
             <View style={styles.plantInfo}>
-              <Text style={styles.plantType}>{plant.plantType}</Text>
+              <Text style={styles.plantType}>{plant.collection_name || plant.plantType}</Text>
               <Text style={styles.plantDate}>Planted on {plant.datePlanted}</Text>
             </View>
           </TouchableOpacity>

@@ -5,8 +5,8 @@ import axios from 'axios';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
-import React, { useState } from 'react';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -133,6 +133,7 @@ interface Collection {
 
 const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
   const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -142,6 +143,14 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
   const [isNewCollection, setIsNewCollection] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [showSaveOptions, setShowSaveOptions] = useState(false);
+  const [autoSaveDone, setAutoSaveDone] = useState(false);
+
+  // Preload image from params if present, but do not auto-analyze
+  useEffect(() => {
+    if (params.image) {
+      setSelectedImage(params.image as string);
+    }
+  }, [params.image]);
 
   const fetchCollections = async (plantId: string) => {
     try {
@@ -190,7 +199,7 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
       });
 
       if (response.data.success) {
-        Alert.alert('Success', 'Successfully saved to collection');
+        Alert.alert('Success', 'Successfully saved to my plants');
         setShowSaveOptions(false);
         setSelectedCollection(null);
         setNewCollectionName('');
@@ -247,98 +256,93 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
     }
   };
 
+  // Only analyze when user taps the button
   const analyzeImage = async (imageUri: string) => {
     setLoading(true);
     setResult(null);
     setShowSaveOptions(false);
     try {
-      // Check file size
       const fileInfo = await FileSystem.getInfoAsync(imageUri) as FileInfoWithSize;
       let finalImageUri = imageUri;
-
       if (fileInfo.exists && fileInfo.size) {
-        // If file size is greater than 2048KB (2MB)
         if (fileInfo.size > 2048 * 1024) {
-          console.log('Image size is greater than 2MB, compressing...');
-          // Compress the image
           const manipResult = await ImageManipulator.manipulateAsync(
             imageUri,
-            [{ resize: { width: 1024 } }], // Resize to 1024px width while maintaining aspect ratio
-            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compress with 70% quality
+            [{ resize: { width: 1024 } }],
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
           );
           finalImageUri = manipResult.uri;
-          
-          // Log the new file size
-          const newFileInfo = await FileSystem.getInfoAsync(finalImageUri) as FileInfoWithSize;
-          console.log('New image size:', newFileInfo.size ? newFileInfo.size / 1024 + 'KB' : 'unknown');
         }
       }
-
-      // Create form data
       const formData = new FormData();
       const imageData: ImageData = {
         uri: finalImageUri,
         type: 'image/jpeg',
         name: 'image.jpg',
       };
-      
-      // Log the image data for debugging
-      console.log('Image Data:', imageData);
-      
       formData.append('image', imageData as any);
-
-      // Log the form data for debugging
-      console.log('Form Data:', formData);
-
-      // Make API request
       const response = await axios.post('https://leafeye.eu-1.sharedwithexpose.com/api/disease_detection', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Accept': 'application/json',
         },
       });
-
       if (response.data) {
         setResult(response.data);
-        // Show save prompt after successful detection
-        Alert.alert(
-          'Detection Complete',
-          'Would you like to save this detection to a collection?',
-          [
-            {
-              text: 'No',
-              style: 'cancel'
-            },
-            {
-              text: 'Yes',
-              onPress: async () => {
-                await fetchCollections(response.data.plant_id);
-                setShowSaveOptions(true);
+        if (params.collection_name) {
+          // Auto-save to collection, no prompt
+          try {
+            // Build FormData as in handleSave
+            const formData = new FormData();
+            formData.append('image', {
+              uri: imageUri,
+              type: 'image/jpeg',
+              name: 'image.jpg'
+            } as any);
+            formData.append('collection_name', Array.isArray(params.collection_name) ? params.collection_name[0] : params.collection_name);
+            formData.append('disease_id', response.data.disease_id);
+            formData.append('plant_id', response.data.plant_id);
+
+            const saveResponse = await axios.post('https://leafeye.eu-1.sharedwithexpose.com/api/saveDetection', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
               }
+            });
+
+            if (saveResponse.data.success) {
+              Alert.alert('Diagnosis Saved', 'Diagnosis was automatically saved.');
+            } else {
+              Alert.alert('Auto-save failed', saveResponse.data.error || 'Diagnosis completed but could not be saved.');
             }
-          ]
-        );
+          } catch (err: any) {
+            console.error('Auto-save error:', err);
+            Alert.alert('Auto-save failed', err.response?.data?.error || 'Diagnosis completed but could not be saved.');
+          }
+        } else {
+          Alert.alert(
+            'Detection Complete',
+            'Would you like to save this detection to a collection?',
+            [
+              { text: 'No', style: 'cancel' },
+              { text: 'Yes', onPress: async () => { await fetchCollections(response.data.plant_id); setShowSaveOptions(true); } }
+            ]
+          );
+        }
       } else {
         throw new Error('No data received from server');
       }
     } catch (error: any) {
       console.error('Error analyzing image:', error);
-      
-      // Log detailed error information
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         console.error('Error Response Data:', error.response.data);
         console.error('Error Response Status:', error.response.status);
         console.error('Error Response Headers:', error.response.headers);
-        
         Alert.alert(
           'Error',
           `Failed to analyze image: ${error.response.data.message || 'Server error'}`,
           [{ text: 'OK' }]
         );
       } else if (error.request) {
-        // The request was made but no response was received
         console.error('Error Request:', error.request);
         Alert.alert(
           'Error',
@@ -346,7 +350,6 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
           [{ text: 'OK' }]
         );
       } else {
-        // Something happened in setting up the request that triggered an Error
         console.error('Error Message:', error.message);
         Alert.alert(
           'Error',
@@ -415,6 +418,16 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
                 <Text style={styles.imageButtonText}>Take Photo</Text>
               </TouchableOpacity>
             </View>
+            {/* If image is preloaded, show Diagnose button */}
+            {selectedImage && !loading && !result && (
+              <TouchableOpacity
+                style={[styles.imageButton, { marginTop: 12 }]}
+                onPress={() => analyzeImage(selectedImage)}
+              >
+                <SvgXml xml={iconCamera} width={20} height={20} color="#FFFFFF" />
+                <Text style={styles.imageButtonText}>Diagnose this Image</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Results Section */}
@@ -449,19 +462,19 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
               {/* Save to Collection Section */}
               {showSaveOptions && (
                 <View style={styles.saveSection}>
-                  <Text style={styles.saveTitle}>Save to Collection</Text>
+                  <Text style={styles.saveTitle}>Save to My Plants</Text>
                   
                   {!isNewCollection ? (
                     <>
-                      <Text style={styles.saveSubtitle}>Select Collection</Text>
+                      <Text style={styles.saveSubtitle}>Select Plant Diagnosis Group</Text>
                       {collections.length === 0 ? (
                         <View style={styles.noCollectionsContainer}>
-                          <Text style={styles.noCollectionsText}>No collections available</Text>
+                          <Text style={styles.noCollectionsText}>No Plants available</Text>
                           <TouchableOpacity
                             style={styles.newCollectionButton}
                             onPress={() => setIsNewCollection(true)}
                           >
-                            <Text style={styles.newCollectionButtonText}>Create New Collection</Text>
+                            <Text style={styles.newCollectionButtonText}>Create New Diagnosis Group For Plant</Text>
                           </TouchableOpacity>
                         </View>
                       ) : (
@@ -484,7 +497,7 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
                             style={styles.newCollectionButton}
                             onPress={() => setIsNewCollection(true)}
                           >
-                            <Text style={styles.newCollectionButtonText}>Create New Collection</Text>
+                            <Text style={styles.newCollectionButtonText}>Create New Diagnosis Group For Plant</Text>
                           </TouchableOpacity>
                         </>
                       )}

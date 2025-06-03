@@ -139,7 +139,7 @@ export default function AdvancedFertilization() {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <View style={styles.titleContainer}>
-          <Text style={styles.headerTitle}>Advanced Fertilizer Recommendation</Text>
+          <Text style={styles.headerTitle}>Advanced Fertilization</Text>
           <Text style={styles.headerSubtitle}>Find the perfect fertilizer for your plants</Text>
         </View>
       </View>

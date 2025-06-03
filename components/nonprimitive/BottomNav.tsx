@@ -1,8 +1,8 @@
+import { router } from "expo-router";
+import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { SvgXml } from 'react-native-svg';
-import { router } from "expo-router";
 import { styles } from '../../stylesheet/styles';
-import React from "react";
 const iconLeaf = `
 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
   <path d="M11 20A7 7 0 0 1 4 13C4 9.25 7 6 11 7h1a8 8 0 0 0 8 8c0 4.75-3.25 7.75-7 7.75h-2z"/>
@@ -42,27 +42,27 @@ export default function BottomNav(){
     return(
     <>
     <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem} onPress={()=>router.push('/(menu)')}>
+        <TouchableOpacity style={[styles.tabItem, { alignItems: 'center' }]} onPress={()=>router.push('/(menu)')}>
           <SvgXml xml={iconLeaf} width={24} height={24} color="#3D7054" />
-          <Text style={styles.tabText}>Home</Text>
+          <Text style={[styles.tabText, { textAlign: 'center' }]}>Home</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.tabItem}>
+        <TouchableOpacity style={[styles.tabItem, { alignItems: 'center' }]}>
           <SvgXml xml={iconMessage} width={24} height={24} color="#3D7054" />
-          <Text style={styles.tabText}>AI Chat</Text>
+          <Text style={[styles.tabText, { textAlign: 'center' }]}>AI Chat</Text>
         </TouchableOpacity>
         
         {/* Placeholder for the center button */}
         <View style={styles.tabItemCenter} />
         
-        <TouchableOpacity style={styles.tabItem} onPress={()=>router.push('/(fertilizerreccomendation)')}>
+        <TouchableOpacity style={[styles.tabItem, { alignItems: 'center' }]} onPress={()=>router.push('/(fertilizerreccomendation)')}>
           <SvgXml xml={iconFert} width={24} height={24} color="#3D7054" />
-          <Text style={styles.tabText}>Fertilizer</Text>
+          <Text style={[styles.tabText, { textAlign: 'center' }]}>Common Plants</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.tabItem} onPress={()=>router.push('/profile')}>
+        <TouchableOpacity style={[styles.tabItem, { alignItems: 'center' }]} onPress={()=>router.push('/profile')}>
           <SvgXml xml={iconUser} width={24} height={24} color="#3D7054" />
-          <Text style={styles.tabText}>Profile</Text>
+          <Text style={[styles.tabText, { textAlign: 'center' }]}>Profile</Text>
         </TouchableOpacity>
       </View>
       

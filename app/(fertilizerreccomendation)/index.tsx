@@ -2,14 +2,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    Modal,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Modal,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import BottomNav from '../../components/nonprimitive/BottomNav';
@@ -309,6 +309,39 @@ const crops = [
 • Avoid high nitrogen
 • Don't over-water
 • Watch for pests`
+  },
+  { 
+    id: 13, 
+    name: 'Apple', 
+    care: `🌱 Growing Basics:
+• Sunlight: 6-8 hours daily
+• Water: 1-2 inches per week, keep soil moist but not soggy
+• Soil pH: 6.0-7.0
+• Temperature: 60-75°F (15-24°C)
+
+🌿 Care Tips:
+• Plant in well-draining, fertile soil
+• Prune annually to maintain shape and remove dead wood
+• Mulch to retain moisture and suppress weeds
+• Thin fruit to improve size and quality
+
+🌞 Harvesting:
+• Harvest when apples are fully colored and easily detach from the tree
+• Store in a cool, dry place
+• Handle gently to avoid bruising`,
+    fertilization: `💧 Fertilizer Schedule:
+• NPK Ratio: 10-10-10 or 12-12-12
+• Amount: 1 lb per year of tree age, up to 10 lbs per tree
+
+📅 Application:
+• Early spring: Apply balanced fertilizer around the drip line
+• Late spring: Apply additional nitrogen if needed
+• Avoid fertilizing in late summer or fall
+
+⚠️ Important:
+• Do not over-fertilize, as it can reduce fruit quality
+• Water thoroughly after fertilizing
+• Test soil regularly to adjust fertilizer needs`
   }
 ];
 
@@ -324,7 +357,7 @@ export default function FertilizerRecommendation() {
   };
 
   const navigateTo = (route: string) => {
-    router.push(route);
+    router.push(route as any);
   };
 
   return (
@@ -339,14 +372,14 @@ export default function FertilizerRecommendation() {
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <View style={styles.titleContainer}>
-          <Text style={styles.headerTitle}>Fertilizer Recommendation</Text>
+          <Text style={styles.headerTitle}>Common Plants</Text>
           <Text style={styles.headerSubtitle}>Select a crop to view care and fertilization details</Text>
         </View>
         <TouchableOpacity 
           onPress={() => router.push('/advanced-fertilization')} 
           style={styles.advancedButton}
         >
-          <Text style={styles.advancedButtonText}>Advanced</Text>
+          <Text style={styles.advancedButtonText}>Advanced Fertilization</Text>
         </TouchableOpacity>
       </View>
 

@@ -132,10 +132,10 @@ const LeafEyeMainMenu = () => {
       description: 'Track and manage your plant collection'
     },
     {
-      title: 'Fertilizer',
+      title: 'Common Plants',
       icon: iconFert,
       iconColor: '#3D7054',
-      description: 'Scan and detect plant diseases'
+      description: 'View care and fertilization for common plants'
     },
     {
       title: 'LeafEye Chatbot',
@@ -206,7 +206,7 @@ const LeafEyeMainMenu = () => {
       case 'My Plants':
         router.push('/(plant_monitor)');
         break;
-      case 'Fertilizer':
+      case 'Common Plants':
         router.push('/(fertilizerreccomendation)');
         break;
       case 'LeafEye Chatbot':
@@ -307,7 +307,7 @@ const LeafEyeMainMenu = () => {
 
       {/* Recent Plants */}
       <View style={styles.recentPlantsSection}>
-        <Text style={styles.sectionTitle}>Recent Plants</Text>
+        <Text style={styles.sectionTitle}>Recent Plant Monitors</Text>
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.recentPlantsContent}
@@ -329,7 +329,7 @@ const LeafEyeMainMenu = () => {
                 />
               </TouchableOpacity>
               <View style={styles.plantInfo}>
-                <Text style={styles.plantName}>{plant.plantType}</Text>
+                <Text style={styles.plantName}>{plant.collection_name || plant.plantType}</Text>
                 <View style={styles.plantStatusRow}>
                   <Text style={styles.plantWatered}>Planted {plant.datePlanted}</Text>
                 </View>
