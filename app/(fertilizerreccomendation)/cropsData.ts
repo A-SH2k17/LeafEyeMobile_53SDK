@@ -95,8 +95,36 @@ export const crops = [
   { 
     id: 3, 
     name: 'Sugar Cane', 
-    care: 'Sugar cane requires full sun (8-10 hours daily) and warm temperatures (75-95°F/24-35°C). Water deeply 1-2 times per week, providing 1-2 inches of water. Plant in well-draining soil with pH 5.5-6.5. Space plants 4-6 feet apart. Harvest when canes are 12-14 months old, typically when leaves turn yellow. Cut canes at ground level and remove leaves.', 
-    fertilization: 'Use NPK ratio of 8-8-8 or 10-10-10 for sugar cane. Apply 2-3 pounds per 100 square feet before planting. Side-dress with nitrogen (46-0-0) every 2-3 months during growing season. Apply potassium sulfate (0-0-50) during cane formation. Avoid high phosphorus as it can reduce sugar content.',
+    care: `🌱 Growing Basics:
+• Sunlight: 8-10 hours daily
+• Water: 1-2 inches per week
+• Soil pH: 5.5-6.5
+• Temperature: 75-95°F (24-35°C)
+
+🌿 Care Tips:
+• Space plants 4-6 feet apart
+• Plant in well-draining soil
+• Water deeply 1-2 times per week
+• Monitor for pests
+
+🌞 Harvesting:
+• Wait 12-14 months for maturity
+• Cut canes at ground level
+• Remove leaves after cutting
+• Process immediately for best results`,
+    fertilization: `💧 Fertilizer Schedule:
+• NPK Ratio: 8-8-8 or 10-10-10
+• Amount: 2-3 lbs per 100 sq ft
+
+📅 Application:
+• Before planting: Mix into soil
+• Every 2-3 months: Add nitrogen (46-0-0)
+• During cane formation: Add potassium sulfate (0-0-50)
+
+⚠️ Important:
+• Avoid high phosphorus
+• Monitor soil moisture
+• Watch for nutrient deficiencies`,
     toxicity: 'Non-toxic to humans',
     propagation: 'Stem cutting',
     lifespan: 'Perennial',
@@ -114,8 +142,36 @@ export const crops = [
   { 
     id: 4, 
     name: 'Cotton', 
-    care: 'Cotton needs 6-8 hours of direct sunlight daily. Water deeply once per week, providing 1-1.5 inches of water. Plant in well-draining soil with pH 5.5-6.5. Maintain temperature between 60-95°F (15-35°C). Space plants 12-18 inches apart. Harvest when bolls open and fibers are fluffy, typically 150-180 days after planting. Pick cotton when weather is dry to prevent mold.', 
-    fertilization: 'Use NPK ratio of 20-10-10 or 15-15-15 for cotton. Apply 2-3 pounds per 100 square feet before planting. Side-dress with nitrogen (46-0-0) at first square and first bloom. Apply potassium (0-0-60) during boll development. Avoid excessive nitrogen as it promotes vegetative growth over boll production.',
+    care: `🌱 Growing Basics:
+• Sunlight: 6-8 hours daily
+• Water: 1-1.5 inches per week
+• Soil pH: 5.5-6.5
+• Temperature: 60-95°F (15-35°C)
+
+🌿 Care Tips:
+• Space plants 12-18 inches apart
+• Plant in well-draining soil
+• Water deeply once per week
+• Monitor for pests
+
+🌞 Harvesting:
+• Wait 150-180 days after planting
+• Pick when bolls open
+• Harvest in dry weather
+• Store in dry conditions`,
+    fertilization: `💧 Fertilizer Schedule:
+• NPK Ratio: 20-10-10 or 15-15-15
+• Amount: 2-3 lbs per 100 sq ft
+
+📅 Application:
+• Before planting: Mix into soil
+• At first square: Add nitrogen (46-0-0)
+• During boll development: Add potassium (0-0-60)
+
+⚠️ Important:
+• Avoid excessive nitrogen
+• Monitor soil moisture
+• Watch for nutrient deficiencies`,
     toxicity: 'Non-toxic to humans',
     propagation: 'Seed',
     lifespan: 'Annual',
@@ -133,8 +189,36 @@ export const crops = [
   { 
     id: 5, 
     name: 'Wheat', 
-    care: 'Wheat requires 6-8 hours of sunlight daily. Water needs vary by growth stage: 1 inch per week during tillering, 1.5 inches during heading, and 2 inches during grain filling. Plant in well-draining soil with pH 6.0-7.0. Maintain temperature between 60-75°F (15-24°C) during growing season. Harvest when grain moisture is 13-14%, typically when heads turn golden brown.', 
-    fertilization: 'Use NPK ratio of 16-16-16 or 20-20-20 for wheat. Apply 2-3 pounds per 100 square feet before planting. Side-dress with nitrogen (46-0-0) at tillering stage. Apply phosphorus (0-46-0) at planting for root development. Add potassium (0-0-60) during grain filling stage.',
+    care: `🌱 Growing Basics:
+• Sunlight: 6-8 hours daily
+• Water: 1-2 inches per week
+• Soil pH: 6.0-7.0
+• Temperature: 60-75°F (15-24°C)
+
+🌿 Care Tips:
+• Plant in well-draining soil
+• Monitor growth stages
+• Water according to stage
+• Protect from pests
+
+🌞 Harvesting:
+• Wait for grain moisture 13-14%
+• Harvest when heads turn golden
+• Use proper harvesting equipment
+• Store in dry conditions`,
+    fertilization: `💧 Fertilizer Schedule:
+• NPK Ratio: 16-16-16 or 20-20-20
+• Amount: 2-3 lbs per 100 sq ft
+
+📅 Application:
+• Before planting: Mix into soil
+• At tillering: Add nitrogen (46-0-0)
+• During grain filling: Add potassium (0-0-60)
+
+⚠️ Important:
+• Monitor soil nutrients
+• Adjust water by growth stage
+• Watch for diseases`,
     toxicity: 'Non-toxic to humans',
     propagation: 'Seed',
     lifespan: 'Annual',
@@ -152,8 +236,36 @@ export const crops = [
   { 
     id: 6, 
     name: 'Bell Pepper', 
-    care: 'Bell peppers need 6-8 hours of direct sunlight daily. Water deeply 2-3 times per week, keeping soil consistently moist. Plant in well-draining soil with pH 6.0-6.8. Maintain temperature between 70-85°F (21-29°C). Space plants 18-24 inches apart. Harvest when fruits are firm and fully colored (green, yellow, red, or orange). Cut stems with pruning shears to avoid damaging plants.', 
-    fertilization: 'Use NPK ratio of 5-10-10 or 8-32-16 for bell peppers. Apply 1-2 pounds per 100 square feet before planting. Side-dress with calcium nitrate (15-0-0) when first fruits appear. Apply magnesium sulfate (Epsom salt) during flowering. Avoid high nitrogen as it promotes leaf growth over fruit production.',
+    care: `🌱 Growing Basics:
+• Sunlight: 6-8 hours daily
+• Water: 2-3 times per week
+• Soil pH: 6.0-6.8
+• Temperature: 70-85°F (21-29°C)
+
+🌿 Care Tips:
+• Space plants 18-24 inches apart
+• Plant in well-draining soil
+• Keep soil consistently moist
+• Support plants if needed
+
+🌞 Harvesting:
+• Pick when firm and fully colored
+• Use pruning shears for clean cuts
+• Harvest regularly
+• Store in cool place`,
+    fertilization: `💧 Fertilizer Schedule:
+• NPK Ratio: 5-10-10 or 8-32-16
+• Amount: 1-2 lbs per 100 sq ft
+
+📅 Application:
+• Before planting: Mix into soil
+• At first fruits: Add calcium nitrate (15-0-0)
+• During flowering: Add magnesium sulfate
+
+⚠️ Important:
+• Avoid high nitrogen
+• Monitor soil moisture
+• Watch for blossom end rot`,
     toxicity: 'Non-toxic to humans',
     propagation: 'Seed',
     lifespan: 'Annual',

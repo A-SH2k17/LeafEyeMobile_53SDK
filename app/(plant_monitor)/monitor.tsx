@@ -283,6 +283,7 @@ const PlantDetailsScreen = () => {
       const match = text && text.match(regex);
       return match ? match[1].trim() : null;
     }
+    console.log(crop);
     const careTips = extractSection('Care Tips', crop?.care);
     const harvesting = extractSection('Harvesting', crop?.care);
     const fertilizerSchedule = extractSection('Fertilizer Schedule', crop?.fertilization);
