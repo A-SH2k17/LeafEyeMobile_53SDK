@@ -182,9 +182,23 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
 
     setSaveLoading(true);
     try {
+      // Check image size and compress if needed
+      const fileInfo = await FileSystem.getInfoAsync(selectedImage) as FileInfoWithSize;
+      let finalImageUri = selectedImage;
+      if (fileInfo.exists && fileInfo.size) {
+        if (fileInfo.size > 2048 * 1024) {
+          const manipResult = await ImageManipulator.manipulateAsync(
+            selectedImage,
+            [{ resize: { width: 1024 } }],
+            { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+          );
+          finalImageUri = manipResult.uri;
+        }
+      }
+
       const formData = new FormData();
       formData.append('image', {
-        uri: selectedImage,
+        uri: finalImageUri,
         type: 'image/jpeg',
         name: 'image.jpg'
       } as any);
@@ -337,11 +351,15 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
         console.error('Error Response Data:', error.response.data);
         console.error('Error Response Status:', error.response.status);
         console.error('Error Response Headers:', error.response.headers);
+        if (error.response.status === 500) {
+          setResult({ status: 500 });
+        } else {
         Alert.alert(
           'Error',
           `Failed to analyze image: ${error.response.data.message || 'Server error'}`,
           [{ text: 'OK' }]
         );
+        }
       } else if (error.request) {
         console.error('Error Request:', error.request);
         Alert.alert(
@@ -418,16 +436,6 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
                 <Text style={styles.imageButtonText}>Take Photo</Text>
               </TouchableOpacity>
             </View>
-            {/* If image is preloaded, show Diagnose button */}
-            {selectedImage && !loading && !result && (
-              <TouchableOpacity
-                style={[styles.imageButton, { marginTop: 12 }]}
-                onPress={() => analyzeImage(selectedImage)}
-              >
-                <SvgXml xml={iconCamera} width={20} height={20} color="#FFFFFF" />
-                <Text style={styles.imageButtonText}>Diagnose this Image</Text>
-              </TouchableOpacity>
-            )}
           </View>
 
           {/* Results Section */}
@@ -438,6 +446,12 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
             </View>
           ) : result ? (
             <View style={styles.resultSection}>
+              {!result.disease || result.status === 500 ? (
+                <View style={styles.errorCard}>
+                  <Text style={styles.errorText}>Error: Failed to diagnose leaf. Enter a Suitable image</Text>
+                </View>
+              ) : (
+                <>
               <Text style={styles.resultTitle}>Detection Results</Text>
               <View style={styles.resultCard}>
                 {result.disease && result.disease.includes('___') ? (
@@ -458,6 +472,8 @@ const DiseaseDetection = ({ navigation }: DiseaseDetectionProps) => {
                   </View>
                 ))}
               </View>
+                </>
+              )}
 
               {/* Save to Collection Section */}
               {showSaveOptions && (
@@ -828,6 +844,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginBottom: 12,
+  },
+  errorCard: {
+    backgroundColor: '#FFEBEE',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#D32F2F',
+    textAlign: 'center',
+    fontWeight: '600',
   },
 });
 

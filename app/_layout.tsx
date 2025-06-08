@@ -44,6 +44,7 @@ export default function RootLayout() {
           <Stack.Screen name="(disease)" options={{ headerShown: false }} />
           <Stack.Screen name="(logreg)" options={{ headerShown: false }} />
           <Stack.Screen name="(chatbot)" options={{ headerShown: false }} />
+          <Stack.Screen name="(business)" options={{ headerShown: false }} />
           <Stack.Screen name="(plant_monitor)" options={{ headerShown: false }} />
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />

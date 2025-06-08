@@ -4,19 +4,19 @@ import axios from 'axios';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Modal,
-    Pressable,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-    Text,
-    TextInput,
-    TextStyle,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  Alert,
+  FlatList,
+  Modal,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  Text,
+  TextInput,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 
@@ -131,16 +131,59 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigateTo }) => {
       const response = await axios.post("https://leafeye.eu-1.sharedwithexpose.com/api/login", formData);
       
       if (response.data) {
-        // Store raw response data
-        await AsyncStorage.setItem('session', JSON.stringify(response.data));
-        
-        // Set default authorization header for future requests
-        if (response.data.token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        console.log(response.data);
+        // Check user type and status for business users
+        if (response.data.user?.role === 'business') {
+          if (response.data.shop_status === 'approved') {
+            // Store raw response data
+            await AsyncStorage.setItem('session', JSON.stringify(response.data));
+            
+            // Set default authorization header for future requests
+            if (response.data.token) {
+              axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+            }
+            router.push('/(business)');
+          } else if (response.data.shop_status === 'pending') {
+            // Clear any existing session
+            await AsyncStorage.removeItem('session');
+            delete axios.defaults.headers.common['Authorization'];
+            
+            Alert.alert(
+              'Account Pending',
+              'Your business account is awaiting approval from administrators.',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => navigateTo('signin')
+                }
+              ]
+            );
+          } else if (response.data.shop_status === 'rejected') {
+            // Clear any existing session
+            await AsyncStorage.removeItem('session');
+            delete axios.defaults.headers.common['Authorization'];
+            
+            Alert.alert(
+              'Account Rejected',
+              'Your business account has been rejected.',
+              [
+                {
+                  text: 'OK',
+                  onPress: () => navigateTo('signin')
+                }
+              ]
+            );
+          }
+        } else {
+          // Store raw response data
+          await AsyncStorage.setItem('session', JSON.stringify(response.data));
+          
+          // Set default authorization header for future requests
+          if (response.data.token) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+          }
+          router.push('/(menu)');
         }
-        
-        // Navigate to menu
-        router.push('/');
       }
     } catch (error: any) {
       if (error.response?.data?.errors) {
@@ -420,26 +463,44 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ accountType, completeRe
         } : {})
       };
 
-      const response = await axios.post("http://leafeye.test/api/register", registrationData);
+      const response = await axios.post("https://leafeye.eu-1.sharedwithexpose.com/api/register", registrationData);
       
       if (response.data) {
-        // Store raw response data
-        await AsyncStorage.setItem('session', JSON.stringify(response.data));
-        
-        // Set default authorization header for future requests
-        if (response.data.token) {
-          axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        if (accountType === 'business') {
+          // Clear any existing session
+          await AsyncStorage.removeItem('session');
+          delete axios.defaults.headers.common['Authorization'];
+          
+          Alert.alert(
+            'Registration Successful',
+            'Your business account has been created and is pending approval from administrators.',
+            [
+              {
+                text: 'OK',
+                onPress: () => navigateTo('signin')
+              }
+            ]
+          );
+        } else {
+          // Store raw response data for normal users
+          await AsyncStorage.setItem('session', JSON.stringify(response.data));
+          
+          // Set default authorization header for future requests
+          if (response.data.token) {
+            axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+          }
+          
+          Alert.alert(
+            'Success',
+            'Normal account created successfully!',
+            [
+              {
+                text: 'OK',
+                onPress: () => navigateTo('signin')
+              }
+            ]
+          );
         }
-        
-        Alert.alert(
-          'Success', 
-          accountType === 'business' 
-            ? 'Business account with shop created successfully!' 
-            : 'Normal account created successfully!'
-        );
-        
-        // Navigate to menu instead of signin
-        router.push('/(menu)');
       }
     } catch (error: any) {
       if (error.response?.data?.errors) {
